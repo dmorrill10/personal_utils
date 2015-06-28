@@ -1,0 +1,5 @@
+#!/bin/bash
+echo -n "Touching files in $1 newer than the newest file in $2..."
+find $1 -type f -newer "$(ls -Rtd $2 | head -2 | tail -1)" -not -wholename '*/.git/*' -not -wholename '*/tmp/*' -exec touch {} \;
+echo 'Done'
+

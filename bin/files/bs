@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+echo -n "Creating bash script of command \"$1\" in $2..."
+echo "#!/usr/bin/env bash" > $2
+echo "$1" >> $2
+chmod a+x $2
+echo 'Done'
+

@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+cat - $1 > ~/prepend.tmp && mv ~/prepend.tmp $1
