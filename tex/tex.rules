@@ -1,0 +1,208 @@
+# Written by Michael Bowling
+
+SHELL=/bin/sh
+
+MAKETEX=true
+
+TEX = latex
+BIBTEX = bibtex
+PDFTEX = pdflatex
+
+DOT = dot
+DOTOPTS =
+DVIPS = dvips
+DVIPSOPTS = `(if head -1 $*.tex | grep -q landscape; then echo "-t letter -t landscape"; else echo "-t letter"; fi)`
+PSNUP = /usr/bin/psnup
+PSNUPOPTS = -l
+CONVERT= convert
+CONVERTOPTS=
+PDFTOEPS=pdftops -eps
+
+# If you don't have my (mhb) figtoeps than use this line instead, and
+#  comment FIGTOPDF.
+#FIGTOEPS = fig2dev -L ps
+#FIGTOEPS = figtoeps
+#FIGTOPDF = figtopdf
+#FIGOPTS =
+
+# This allows mutliple fig files to be generated from a single file
+# based on depths.  If you don't have it well, there's no substitute.
+FIGEXTRACT = figextract
+
+TEXFILES=$(wildcard *.tex) $(wildcard *.ltx)
+
+define run-tex
+	@(echo "Running TeX..."; \
+	cd $(dir $*); \
+	echo "Changing directory to $$PWD..."; \
+	if [ "$@" = "$*.pdf" ]; then \
+	  texcmd=$(PDFTEX); \
+	else \
+	  texcmd=$(TEX); \
+	fi; \
+	if $$texcmd -interaction=nonstopmode $(notdir $<) > /dev/null >& /dev/null; then \
+  	  if fgrep -q \\bibliography $(notdir $<) || [ -f $(word 1, $(wildcard $(notdir $*).bu1.aux) BLAH) ]; then \
+            echo "Running BibTeX..."; \
+	    if [ -f $(word 1, $(wildcard $(notdir $*).bu1.aux) BLAH) ]; then \
+	      for f in $(wildcard $(notdir $*).bu*.aux); do \
+	        $(BIBTEX) `basename $$f .aux`; \
+	      done \
+            elif [ -f bu1.aux ]; then \
+	      for f in $(wildcard bu*.aux); do \
+	        $(BIBTEX) `basename $$f .aux`; \
+	      done \
+	    fi; \
+            $(BIBTEX) $(notdir $*); \
+	    echo "Running TeX (again)..."; \
+	    $$texcmd -interaction=nonstopmode $(notdir $<) > /dev/null >& /dev/null; \
+	  fi; \
+	  while egrep -q "^LaTeX Warning.* Rerun .*" $(notdir $*).log ; do \
+            echo "Running TeX (again)..."; \
+	    $$texcmd -interaction=nonstopmode $(notdir $<) > /dev/null >& /dev/null; \
+	  done; \
+	fi; \
+	if egrep -q -A 7 '^\!|Error' $(notdir $*).log || egrep -q Warning $(notdir $*).log; then \
+	  ( echo ""; \
+	    echo "***********************************************"; \
+	    egrep -A 7 '^\!|Error' $(notdir $*).log; egrep Warning $(notdir $*).log; \
+	    echo "***********************************************"; \
+	    echo ""; ) | ( \
+	    if egrep -q -A 7 '^\!|Error' $(notdir $*).log; then cat -; false; \
+	    else cat -; true; fi; ); \
+	else \
+	  true; \
+	fi; \
+	)
+endef
+
+#
+# include specific rules if a Makefile exists
+#
+
+ifneq (n,$(DOINCLUDE))
+ifeq (Makefile,$(wildcard Makefile))
+include Makefile
+endif
+endif
+
+#
+# TeX and pdfTeX
+#
+
+%.dvi: %.tex
+	$(run-tex)
+
+%.dvi: %.ltx
+	$(run-tex)
+
+%.pdf: %.tex
+	$(run-tex)
+
+%-pp4.pdf: %.pdf
+	ppower4 $< $@
+
+%.ps: %.dvi
+	$(DVIPS) $(DVIPSOPTS) -o $@ $<
+
+%-4.ps: %.ps
+	 $(PSNUP) -pletter -n 4 $(PSNUPOPTS) $< $@
+
+#
+# Graphics Files
+#
+
+ifneq ($(FIGTOPDF),)
+%.pdf: %.fig
+	$(FIGTOPDF) $(FIGOPTS) $< > $@
+endif
+
+ifneq ($(FIGTOEPS),)
+%.eps: %.fig
+	$(FIGTOEPS) $(FIGOPTS) $< > $@
+endif
+
+ifneq ($(FIGEXTRACT),)
+$(foreach n, 0 10 20 30 40 50 60 70 80 90 100,%-L$n.fig ): %.fig
+	$(FIGEXTRACT) -L $<
+	touch $@
+
+$(foreach n, 0 10 20 30 40 50 60 70 80 90 100,%-l$n.fig ): %.fig
+	$(FIGEXTRACT) -o -L $<
+	touch $@
+endif
+
+# EPS from various graphical formats ###
+%.eps: %.jpg
+	$(CONVERT) $(CONVERTOPTS) $< $@
+
+%.eps: %.png
+	$(CONVERT) $(CONVERTOPTS) $< $@
+
+%.eps: %.gif
+	$(CONVERT) $(CONVERTOPTS) $< $@
+
+########################################
+
+%.eps: %.dot
+	$(DOT) $(DOTOPTS) -Tps -o $@ $<
+
+%.ps: %.dot
+	$(DOT) $(DOTOPTS) -Tps -o $@ $<
+
+%-color.eps: %.gp
+	@echo -n "Making $@..."
+	@echo "set output '$@'; replot;" | \
+	  gnuplot "${HOME}/lib/gnuplot-color.gp" $^ - > /dev/null
+
+%-bw.eps: %.gp
+	@echo -n "Making $@..."
+	@(cd $(dir $@); echo "set output '$(notdir $@)'; replot;" | \
+	  gnuplot "${HOME}/lib/gnuplot-bw.gp" $(notdir $<) - > /dev/null)
+
+%-bwbig.eps: %.gp
+	@echo -n "Making $@..."
+	@(cd $(dir $@); echo "set output '$(notdir $@)'; replot;" | \
+	  gnuplot "${HOME}/lib/gnuplot-bwbig.gp" $(notdir $<) - > /dev/null)
+
+#
+# Random Rules
+#
+
+#all::
+
+gp-color:: $(patsubst %.gp,%-color.eps,$(wildcard *.gp))
+
+gp-bw:: $(patsubst %.gp,%-bw.eps,$(wildcard *.gp))
+
+gp-bwbig:: $(patsubst %.gp,%-bwbig.eps,$(wildcard *.gp))
+
+gp-all:: gp-color gp-bw gp-bwbig
+
+depend::
+	maketexdep -p -a > .depend
+
+psdepend::
+	maketexdep -a > .depend
+
+pdfdepend::
+	maketexdep -a -p -P > .depend
+
+clean::
+	rm -f *~
+
+cleaner:: clean
+	rm -f $(TEXFILES:.tex=.log) \
+              $(TEXFILES:.tex=.blg) \
+              $(TEXFILES:.tex=.bbl) \
+              $(TEXFILES:.tex=.aux) \
+              $(TEXFILES:.tex=.ps) \
+              $(TEXFILES:.tex=.pdf) \
+              $(TEXFILES:.tex=.dvi)
+
+#
+# include a dependency file if one exists
+#
+
+ifeq (.depend,$(wildcard .depend))
+include .depend
+endif
