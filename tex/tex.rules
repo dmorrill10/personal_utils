@@ -189,6 +189,7 @@ pdfdepend::
 
 clean::
 	rm -f *~
+.PHONY: clean
 
 cleaner:: clean
 	rm -f $(TEXFILES:.tex=.log) \
