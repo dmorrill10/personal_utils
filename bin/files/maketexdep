@@ -177,9 +177,9 @@ print("# Any modifications may be lost.\n\n");
 @files = @ARGV;
 
 if (!@files) {
-    open(CMD, "egrep -l \\documentclass *.tex *.ltx|");
-    @files = <CMD>;
-    close(CMD);
+    my $grep_command = "egrep -l '\\\\documentclass' * | egrep '.*\\.(tex|ltx)'";
+    my $file_string = `$grep_command`;
+    @files = split "\n", $file_string;
 }
 
 foreach $f (@files) {
