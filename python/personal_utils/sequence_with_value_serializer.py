@@ -1,9 +1,10 @@
 import struct
+from builtins import bytes
 
 
 def string_to_pstring(s, encoding='ascii'):
     bstring = s.encode(encoding)
-    return chr(len(bstring)).encode(encoding) + bstring
+    return bytes(chr(len(bstring)).encode(encoding) + bstring)
 
 
 def read_string_from_pstring(read_bytes, encoding='ascii'):
