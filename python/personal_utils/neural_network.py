@@ -61,7 +61,7 @@ def test_sat(epochs=2000, batch=256, stepsize=0.2, nvars=64):
     print("{:7}: {}".format("Epoch", "Training Loss"))
     for i in range(epochs):
         loss = train(*gen_data(batch))
-        print("{:7d}: {}".format(i, np.mean(loss)))
+        print("{:7d} {}".format(i, np.mean(loss)))
 
     print("TEST: {}".format(test(*gen_data(100000))))
 
