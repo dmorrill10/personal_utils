@@ -1,16 +1,19 @@
 import numpy as np
 import theano
 import theano.tensor as T
-from .linear_predictor import LinearPredictor
+try:
+    from .linear_predictor import LinearPredictor
+except:
+    from linear_predictor import LinearPredictor
 # Originally written by Michael Bowling
 
 
 class SatNet:
-    def __init__(self, rng, input_data, n_in, n_out, num_layers):
+    def __init__(self, rng, input_data, n_in, n_out, *layers):
         self.layers = []
 
         l_in = n_in
-        for l_out in range(num_layers):
+        for l_out in layers:
             layer = LinearPredictor(rng, input_data, l_in, l_out)
             self.layers.append(layer)
             input_data = layer.output
