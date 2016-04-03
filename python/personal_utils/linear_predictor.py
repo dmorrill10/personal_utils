@@ -27,7 +27,18 @@ class LinearPredictor(object):
     def zero_weights(n_in, n_out):
         return LinearPredictor.shared_weights(lambda: np.zeros((n_in, n_out)))
 
-    def __init__(self, rng, input_data, n_in, n_out, activation=T.tanh, init="xavier", W=None, b=None):
+    def __init__(
+        self,
+        rng,
+        input_data,
+        n_in,
+        n_out,
+        activation=T.tanh,
+        loss=lambda last_layer, y: last_layer.classification_log_loss(y),
+        init="xavier",
+        W=None,
+        b=None
+    ):
         if W is None:
             if init == "xavier":
                 self.W = LinearPredictor.xavier_initialized_weights(rng, n_in, n_out)
@@ -52,6 +63,7 @@ class LinearPredictor(object):
 
         self.output = activation(T.dot(input_data, self.W) + self.b)
         self.params = (self.W, self.b)
+        self.loss = lambda y: loss(self, y)
 
     def l2_loss(self, y):
         '''Matching loss for the identity activation function.'''
@@ -61,11 +73,32 @@ class LinearPredictor(object):
         '''Convex loss for the identity activation function.'''
         return T.mean(abs(self.output - y), 0)
 
-    def log_loss(self, y): # Assumes binary {0, 1} target y
-        '''Matching loss for a sigmoid activation function.'''
+    def classification_log_loss(self, y):
+        '''Matching loss for a sigmoid activation function with binary {0, 1} targets.'''
         logprob = T.log(self.output)
         lognotprob = T.log(1.0-self.output)
         return -(T.sum(logprob * y) + T.sum(lognotprob * (1.0 - y)))/y.shape[0]
+
+    def cross_entropy_error(self, y):
+        '''Matching loss for a sigmoid activation function with real [0, 1] targets.'''
+        log_prob_of_true = T.log(self.output)
+        log_prob_of_false = T.log(1.0 - self.output)
+        target_log_prob_of_true = T.log(y)
+        target_log_prob_of_false = T.log(1.0 - y)
+        return -T.mean(
+            (
+                y * (
+                        (
+                            log_prob_of_true -
+                            log_prob_of_false
+                        ) +
+                        (
+                            target_log_prob_of_false -
+                            target_log_prob_of_true
+                        )
+                ) + log_prob_of_false
+            ) - target_log_prob_of_false
+        )
 
     def unnormalized_entropy_loss(self, y):
         '''Matching loss for an exponential activation function.'''
@@ -78,3 +111,6 @@ def exponential_activation(pre_image):
     real numbers
     '''
     return T.exp(pre_image)
+
+def identity_activation(pre_image):
+    return pre_image
