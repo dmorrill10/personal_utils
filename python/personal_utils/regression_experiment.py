@@ -19,16 +19,16 @@ class Regressor(object):
         self.learner = learner
         self.trainer = theano.function(
             inputs=[X, y],
-            outputs=self.learner.loss(y),
+            outputs=self.learner.training_loss(y),
             updates=[
-                (p, p - step_size * T.grad(T.mean(self.learner.loss(y)), p))
+                (p, p - step_size * T.grad(T.mean(self.learner.training_loss(y)), p))
                 for p in self.learner.params
             ]
         )
         self.predictor = theano.function(inputs=[X], outputs=self.learner.output)
         self.test = theano.function(
             inputs=[X, y],
-            outputs=self.learner.loss(y)
+            outputs=self.learner.testing_loss(y)
         )
         self.epochs = epochs
         self.batch = batch

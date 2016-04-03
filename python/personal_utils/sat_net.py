@@ -5,7 +5,7 @@ except:
     from linear_predictor import LinearPredictor
 
 
-class SatNet:
+class SatNet(object):
     def __init__(
         self,
         rng,
@@ -14,7 +14,10 @@ class SatNet:
         n_out,
         layers,
         final_activation=T.nnet.sigmoid,
-        loss=lambda last_layer, y: last_layer.classification_log_loss(y)
+        training_loss=lambda last_layer, y: last_layer.cross_entropy_loss(y),
+        testing_loss=lambda last_layer, y: last_layer.classification_loss(y),
+        regularizer=lambda last_layer: last_layer.l2_regularizer(),
+        regularization_param=1
     ):
         ''' Michael Bowling's SATNet implementation '''
         self.layers = []
@@ -39,10 +42,5 @@ class SatNet:
         self.input_data = input_data
         self.output = layer.output
         self.params = sum((l.params for l in self.layers), ())
-        self.loss = lambda y: loss(self.layers[-1], y)
-
-    def accuracy(self, y): # Assumes binary {0, 1} targets
-        return (
-            T.sum((self.output > 0.5) * (y > 0.5)) +
-            T.sum((self.output < 0.5) * (y < 0.5))
-        ) / y.shape[0]
+        self.testing_loss = lambda y: testing_loss(self.layers[-1], y)
+        self.training_loss = lambda y: training_loss(self.layers[-1], y) + regularizer(self.layers[-1])
