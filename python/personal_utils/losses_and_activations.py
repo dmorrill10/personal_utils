@@ -19,14 +19,23 @@ def cross_entropy_loss(y_hat, y):
     return -(T.sum(logprob * y) + T.sum(lognotprob * (1.0 - y))) / y.shape[0]
 
 
-def unnormalized_entropy_loss(self, y):
+def unnormalized_entropy_loss(y_hat, y):
     '''Matching loss for an exponential activation function.'''
-    return T.mean(self.output - (y * T.log(self.output)))
+    return T.mean(y_hat - (y * T.log(y_hat)))
 
 
 def classification_loss(y_hat, y):
     ''' Assumes binary {0, 1} targets '''
-    return (T.sum((y_hat > 0.5) * (y < 0.5)) + T.sum((y_hat < 0.5) * (y > 0.5)))/y.shape[0]
+    return T.mean(T.neq((y_hat > 0.5), (y > 0.5)))
+
+
+def positive_vs_negative_cross_entropy_loss(y_hat, y):
+    '''Matching loss for a sigmoid activation function.'''
+    return cross_entropy_loss(y_hat, y > 0.0)
+
+
+def positive_vs_negative_classification_loss(y_hat, y):
+    return T.mean(T.neq((y_hat > 0.5), (y > 0.0)))
 
 
 def exponential_activation(pre_image):

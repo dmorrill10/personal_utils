@@ -71,4 +71,4 @@ def test_sat(epochs=2000, batch=256, step_size=0.2, nvars=64, rng_seed=390221039
         )
     )
     # print("\n### Testing Loss: {}".format(testing_loss))
-    assert testing_loss == 0.0
+    assert testing_loss == np.array(0.0)
