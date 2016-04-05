@@ -33,10 +33,11 @@ def test_sat(epochs=2000, batch=256, step_size=0.2, nvars=64, rng_seed=390221039
         (
             64,
             {
-                'new_weights': lambda n_in, n_out: LinearModel.xavier_initialized_weights(
+                'new_weights': lambda n_in, n_out, **kwargs: LinearModel.xavier_initialized_weights(
                     rng,
                     n_in,
-                    n_out
+                    n_out,
+                    **kwargs
                 ),
                 'activation': T.tanh
             }
@@ -44,9 +45,10 @@ def test_sat(epochs=2000, batch=256, step_size=0.2, nvars=64, rng_seed=390221039
         (
             1,
             {
-                'new_weights': lambda n_in, n_out: LinearModel.zero_weights(
+                'new_weights': lambda n_in, n_out, **kwargs: LinearModel.zero_weights(
                     n_in,
-                    n_out
+                    n_out,
+                    **kwargs
                 ),
                 'activation': T.nnet.sigmoid
             }
