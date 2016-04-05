@@ -25,7 +25,7 @@ def unnormalized_entropy_loss(self, y):
 
 
 def classification_loss(y_hat, y): # Assumes binary {0, 1} targets
-    return (T.sum((y_hat > 0.5) * (y > 0.5)) + T.sum((y_hat < 0.5) * (y < 0.5)))/y.shape[0]
+    return (T.sum((y_hat > 0.5) * (y < 0.5)) + T.sum((y_hat < 0.5) * (y > 0.5)))/y.shape[0]
 
 
 def exponential_activation(pre_image):

@@ -63,4 +63,4 @@ def test_sat(epochs=2000, batch=256, stepsize=0.2, nvars=64, rng_seed=390221039)
       loss = train(*gen_data(batch))
       # print("{:7d}: {}".format(i, np.mean(loss)))
 
-    assert test(*gen_data(100000)) == [np.array(1.0), np.array(0.006250402442257705)]
+    assert test(*gen_data(100000)) == [np.array(0.0), np.array(0.006250402442257705)]
