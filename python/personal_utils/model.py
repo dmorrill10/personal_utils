@@ -14,9 +14,21 @@ class Model(object):
         )
 
     @classmethod
+    def xavier_normalized_values(self, rng, n_in, n_out, **kwargs):
+        '''Uniform random with particular bound inversely
+           proportional to the number of input and output parameters
+        '''
+        bound = np.sqrt(6.0/(n_in + n_out))
+        return rng.uniform(
+            low=-bound,
+            high=bound,
+            **kwargs
+        )
+
+    @classmethod
     def xavier_initialized_weights(self, rng, n_in, n_out, **kwargs):
-        '''Uniform random with particular bound proportional to the number of
-           input parameters
+        '''Uniform random with particular bound inversely
+           proportional to the number of input parameters
         '''
         bound = np.sqrt(6.0/n_in)
         return self.shared_weights(

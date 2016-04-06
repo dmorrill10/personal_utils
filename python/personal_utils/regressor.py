@@ -10,16 +10,34 @@ class DataSet(object):
         self.indices = indices
 
 
+def rms_prop(cost, params, lr=0.001, rho=0.9, epsilon=1e-6):
+    ''' From a theano tutorial on github '''
+    grads = T.grad(cost=cost, wrt=params)
+    updates = []
+    for p, g in zip(params, grads):
+        acc = theano.shared(p.get_value() * 0.)
+        acc_new = rho * acc + (1 - rho) * g ** 2
+        gradient_scaling = T.sqrt(acc_new + epsilon)
+        g = g / gradient_scaling
+        updates.append((acc, acc_new))
+        updates.append((p, p - lr * g))
+    return updates
+
+
+def gradient_descent(cost, params, step_size=0.2):
+    return [
+        (p, p - step_size * T.grad(cost, p))
+        for p in params
+    ]
+
+
 class Regressor(object):
-    def __init__(self, X, y, learner, step_size=0.2, epochs=2000, batch=256, verbose=False):
+    def __init__(self, X, y, learner, optimizer=lambda cost, params: gradient_descent(cost, params, step_size=0.2), epochs=2000, batch=256, verbose=False):
         self.learner = learner
         self.trainer = theano.function(
             inputs=[X, y],
             outputs=self.learner.training_loss(y),
-            updates=[
-                (p, p - step_size * T.grad(T.mean(self.learner.training_objective(y)), p))
-                for p in self.learner.params
-            ]
+            updates=optimizer(T.mean(self.learner.training_objective(y)), self.learner.params)
         )
         self.predictor = theano.function(inputs=[X], outputs=self.learner.output)
         self.test = theano.function(

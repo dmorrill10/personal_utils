@@ -3,12 +3,12 @@ import theano
 import theano.tensor as T
 from personal_utils.learner import Learner
 from personal_utils.linear_model import LinearModel
-from personal_utils.regressor import Regressor, DataSet
+from personal_utils.regressor import Regressor, DataSet, rms_prop
 from personal_utils.regression_experiment import construct_and_run_experiment
 import random
 
 
-def test_sat(epochs=2000, batch=256, step_size=0.2, nvars=64, rng_seed=390221039):
+def test_sat(epochs=2000, batch=256, nvars=64, rng_seed=390221039):
     np.random.seed(rng_seed)
     rng = np.random
 
@@ -66,10 +66,10 @@ def test_sat(epochs=2000, batch=256, step_size=0.2, nvars=64, rng_seed=390221039
             X,
             y,
             net,
-            step_size=step_size,
             epochs=epochs,
             batch=batch,
-            verbose=False
+            verbose=False,
+            optimizer=lambda cost, params: rms_prop(cost, params)
         )
     )
     # print("\n### Testing Loss: {}".format(testing_loss))
