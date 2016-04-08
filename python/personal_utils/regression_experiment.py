@@ -6,8 +6,17 @@ from .regressor import Regressor, DataSet
 
 
 def run_experiment(training_data, testing_data, regression):
+    _i = 0
     def gen_data(n):
-        list_of_indices = random.sample(training_data.indices, n)
+        nonlocal _i, training_data
+        _i %= len(training_data.indices)
+        d = len(training_data.indices) - (_i + n)
+        if d < n:
+            list_of_indices = training_data.indices[_i:] + training_data.indices[0:n-d]
+            random.shuffle(training_data.indices)
+        else:
+            list_of_indices = training_data.indices[_i:_i+n]
+        _i += n
         X = []
         y = []
         for i in list_of_indices:

@@ -10,7 +10,7 @@ class DataSet(object):
         self.indices = indices
 
 
-def rms_prop(cost, params, lr=0.001, rho=0.9, epsilon=1e-6):
+def rms_prop(cost, params, learning_rate=0.001, rho=0.9, epsilon=1e-6):
     ''' From a theano tutorial on github '''
     grads = T.grad(cost=cost, wrt=params)
     updates = []
@@ -20,7 +20,7 @@ def rms_prop(cost, params, lr=0.001, rho=0.9, epsilon=1e-6):
         gradient_scaling = T.sqrt(acc_new + epsilon)
         g = g / gradient_scaling
         updates.append((acc, acc_new))
-        updates.append((p, p - lr * g))
+        updates.append((p, p - learning_rate * g))
     return updates
 
 
