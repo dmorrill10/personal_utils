@@ -5,6 +5,15 @@ from .losses_and_activations import identity_activation
 
 
 class LinearModel(Model):
+    @classmethod
+    def every_model(self, input_data, n_in, model_params):
+        l_in = n_in
+        for l_out, kwargs in model_params:
+            layer = self(input_data, l_in, l_out, **kwargs)
+            yield layer
+            input_data = layer.output
+            l_in = l_out
+
     def __init__(
         self,
         input_data,

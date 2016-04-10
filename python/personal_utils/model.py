@@ -41,15 +41,6 @@ class Model(object):
         )
 
     @classmethod
-    def every_model(self, input_data, n_in, model_params):
-        l_in = n_in
-        for l_out, kwargs in model_params:
-            layer = self(input_data, l_in, l_out, **kwargs)
-            yield layer
-            input_data = layer.output
-            l_in = l_out
-
-    @classmethod
     def zero_weights(self, n_in, n_out, **kwargs):
         return self.shared_weights(lambda: np.zeros((n_in, n_out)), **kwargs)
 
