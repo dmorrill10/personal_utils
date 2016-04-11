@@ -17,21 +17,15 @@ def run_experiment(training_data, testing_data, regression):
         else:
             list_of_indices = training_data.indices[_i:_i+n]
         _i += n
-        X = []
-        y = []
-        for i in list_of_indices:
-            X.append(training_data.X[i])
-            y.append(training_data.y[i])
+        X = training_data.X.take(list_of_indices, axis=0)
+        y = training_data.y.take(list_of_indices, axis=0)
         return X, y
 
     regression.train(gen_data)
-
-    X_test = []
-    y_test = []
-    for i in testing_data.indices:
-        X_test.append(testing_data.X[i])
-        y_test.append(testing_data.y[i])
-    return regression.test(X_test, y_test)
+    return regression.test(
+        testing_data.X.take(testing_data.indices, axis=0),
+        testing_data.y.take(testing_data.indices, axis=0)
+    )
 
 
 def construct_and_run_experiment(
