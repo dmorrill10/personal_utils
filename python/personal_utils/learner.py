@@ -1,6 +1,6 @@
 try:
     from .linear_model import LinearModel
-    from .losses_and_activations import cross_entropy_loss, classification_loss
+    from .losses_and_activations import symbolic_cross_entropy_loss, compiled_classification_loss
 except ImportError:
     from linear_model import LinearModel
     from losses_and_activations import LinearModel
@@ -11,8 +11,8 @@ class Learner(object):
     def __init__(
         self,
         layers,
-        training_loss=lambda learner, y: cross_entropy_loss(learner.output_model().output, y),
-        testing_loss=lambda X, y: classification_loss(X, y),
+        training_loss=lambda learner, y: symbolic_cross_entropy_loss(learner.output_model().output, y),
+        testing_loss=compiled_classification_loss(),
         regularizer=lambda learner: learner.output_model().l2_regularizer(1)
     ):
         self.layers = layers
