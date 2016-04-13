@@ -32,6 +32,7 @@ class LinearModel(Model):
         self.b = new_bias(n_out, name='b')
         self.output = activation(T.dot(input_data, self.W) + self.b)
         self.params = (self.W, self.b)
+        self.complexity = n_in * n_out + n_out
 
     def l2_regularizer(self, param):
         return (param / 2.0) * T.dot(self.W.T, self.W)

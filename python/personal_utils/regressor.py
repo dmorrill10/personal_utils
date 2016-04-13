@@ -1,13 +1,15 @@
 import numpy as np
 import theano
 import theano.tensor as T
+from .log import log
+import random
 
 
 class DataSet(object):
-    def __init__(self, X, y, indices):
+    def __init__(self, X, y, indices=None):
         self.X = X
         self.y = y
-        self.indices = indices
+        self.indices = indices if indices is not None else list(range(len(X)))
 
 
 def rms_prop(cost, params, learning_rate=0.001, rho=0.9, epsilon=1e-6):
@@ -32,7 +34,16 @@ def gradient_descent(cost, params, step_size=0.2):
 
 
 class Regressor(object):
-    def __init__(self, X, y, learner, optimizer=lambda cost, params: gradient_descent(cost, params, step_size=0.2), epochs=2000, batch=256, verbose=False):
+    def __init__(
+        self,
+        X,
+        y,
+        learner,
+        optimizer=lambda cost, params: gradient_descent(cost, params, step_size=0.2),
+        epochs=2000,
+        batch=256,
+        verbose=False
+    ):
         self.learner = learner
         self.trainer = theano.function(
             inputs=[X, y],
@@ -40,10 +51,7 @@ class Regressor(object):
             updates=optimizer(T.mean(self.learner.training_objective(y)), self.learner.params)
         )
         self.predictor = theano.function(inputs=[X], outputs=self.learner.output)
-        self.test = theano.function(
-            inputs=[X, y],
-            outputs=self.learner.testing_loss(y)
-        )
+        self.test = lambda X, y: learner.testing_loss(self.predictor(X), y)
         self.epochs = epochs
         self.batch = batch
         self.verbose = verbose
@@ -58,3 +66,21 @@ class Regressor(object):
             loss = self.trainer(*gen_data(self.batch))
             if self.verbose and i % 100 == 0:
                 print("{:7d}: {}".format(i, np.mean(loss)))
+
+    def fit(self, X, y):
+        _i = 0
+        training_data = DataSet(X, y)
+        def gen_data(n):
+            nonlocal _i, training_data
+            _i %= len(training_data.indices)
+            d = len(training_data.indices) - (_i + n)
+            if d < n:
+                list_of_indices = training_data.indices[_i:] + training_data.indices[0:n-d]
+                random.shuffle(training_data.indices)
+            else:
+                list_of_indices = training_data.indices[_i:_i+n]
+            _i += n
+            _X = training_data.X.take(list_of_indices, axis=0)
+            _y = training_data.y.take(list_of_indices, axis=0)
+            return _X, _y
+        self.train(gen_data)

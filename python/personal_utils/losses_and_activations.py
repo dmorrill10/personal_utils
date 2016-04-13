@@ -1,3 +1,4 @@
+import numpy as np
 import theano.tensor as T
 # Derived from code written by Michael Bowling
 
@@ -13,6 +14,13 @@ def l1_loss(y_hat, y):
 
 
 def cross_entropy_loss(y_hat, y):
+    '''Matching loss for a sigmoid activation function.'''
+    logprob = np.log(y_hat)
+    lognotprob = np.log(1.0-y_hat)
+    return -(np.sum(logprob * y) + np.sum(lognotprob * (1.0 - y))) / y.shape[0]
+
+
+def symbolic_cross_entropy_loss(y_hat, y):
     '''Matching loss for a sigmoid activation function.'''
     logprob = T.log(y_hat)
     lognotprob = T.log(1.0-y_hat)
