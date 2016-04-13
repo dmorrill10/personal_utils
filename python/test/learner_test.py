@@ -49,8 +49,8 @@ def test_sat(epochs=2000, batch=256, stepsize=0.2, nvars=64, rng_seed=390221039)
                                    for p in net.params])
     eval = theano.function(inputs=[X],
                          outputs=net.output)
-    test = theano.function(inputs=[X,y],
-                         outputs=[net.testing_loss(y),net.training_loss(y)])
+    compiled_training_loss = theano.function(inputs=[X,y], outputs=net.training_loss(y))
+    test = lambda X, y: [net.testing_loss(eval(X), y), compiled_training_loss(X, y)]
 
     def formula(x):
       return np.sum(x[0:2]) % 2
