@@ -43,7 +43,8 @@ class Regressor(object):
         epochs=2000,
         batch=256,
         verbose=False,
-        gen_data=None
+        gen_data=None,
+        num_iterations_before_checkpoint=100
     ):
         self.learner = learner
         self.trainer = theano.function(
@@ -57,17 +58,24 @@ class Regressor(object):
         self.batch = batch
         self.verbose = verbose
         self.gen_data = gen_data
+        self.num_iterations_before_checkpoint = num_iterations_before_checkpoint
 
     def __call__(self, X):
         return self.predictor(X)
 
     def train(self, gen_data):
         if self.verbose:
-            print("{:7}: {}".format("Epoch", "Training Loss"))
-        for i in range(self.epochs):
+            print("{:7}: {}".format("Epoch", "Avg. Training Loss"))
+        self.num_iterations_before_checkpoint = 100
+        avg_loss = 0
+        for i in range(1, self.epochs + 1):
             loss = self.trainer(*gen_data(self.batch))
-            if self.verbose and i % 100 == 0:
-                print("{:7d}: {}".format(i, np.mean(loss)))
+            if self.verbose:
+                avg_loss += (np.mean(loss) / self.num_iterations_before_checkpoint)
+                if i % self.num_iterations_before_checkpoint == 0:
+                    print("{:7d}: {}".format(i, np.mean(avg_loss)))
+                    avg_loss = 0
+
 
     def fit(self, X, y):
         if self.gen_data is None:
