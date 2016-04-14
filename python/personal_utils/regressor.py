@@ -77,17 +77,20 @@ class Regressor(object):
                     avg_loss = 0
 
 
-    def fit(self, X, y):
+    def fit(self, X, y, random_seed=901931823):
         if self.gen_data is None:
             _i = 0
             training_data = DataSet(X, y)
+            rng = random.Random(random_seed)
+            rng.shuffle(training_data.indices)
+            num_training_instances = len(training_data.indices)
             def gen_data(n):
-                nonlocal _i, training_data
-                _i %= len(training_data.indices)
-                d = len(training_data.indices) - (_i + n)
+                nonlocal _i, training_data, num_training_instances
+                _i %= num_training_instances
+                d = num_training_instances - _i + 1
                 if d < n:
-                    list_of_indices = training_data.indices[_i:] + training_data.indices[0:n-d]
-                    random.shuffle(training_data.indices)
+                    list_of_indices = training_data.indices[_i:] + training_data.indices[:n-d]
+                    rng.shuffle(training_data.indices)
                 else:
                     list_of_indices = training_data.indices[_i:_i+n]
                 _i += n
