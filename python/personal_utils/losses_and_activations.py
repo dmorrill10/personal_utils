@@ -9,9 +9,24 @@ def l2_loss(y_hat, y):
     return T.mean((y_hat - y) ** 2, 0)
 
 
+def compiled_l2_loss():
+    '''Convex loss for the identity activation function.'''
+    y = T.matrix('y')
+    y_hat = T.matrix('y_hat')
+    return theano.function(inputs=[y_hat, y], outputs=l2_loss(y_hat, y))
+
+
 def l1_loss(y_hat, y):
     '''Convex loss for the identity activation function.'''
     return T.mean(abs(y_hat - y), 0)
+
+
+def compiled_l1_loss():
+    '''Convex loss for the identity activation function.'''
+    y = T.matrix('y')
+    y_hat = T.matrix('y_hat')
+    return theano.function(inputs=[y_hat, y], outputs=l1_loss(y_hat, y))
+
 
 def symbolic_cross_entropy_loss(y_hat, y):
     '''Matching loss for a sigmoid activation function.'''

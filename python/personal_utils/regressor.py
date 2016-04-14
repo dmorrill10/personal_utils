@@ -42,7 +42,8 @@ class Regressor(object):
         optimizer=lambda cost, params: gradient_descent(cost, params, step_size=0.2),
         epochs=2000,
         batch=256,
-        verbose=False
+        verbose=False,
+        gen_data=None
     ):
         self.learner = learner
         self.trainer = theano.function(
@@ -55,6 +56,7 @@ class Regressor(object):
         self.epochs = epochs
         self.batch = batch
         self.verbose = verbose
+        self.gen_data = gen_data
 
     def __call__(self, X):
         return self.predictor(X)
@@ -68,19 +70,22 @@ class Regressor(object):
                 print("{:7d}: {}".format(i, np.mean(loss)))
 
     def fit(self, X, y):
-        _i = 0
-        training_data = DataSet(X, y)
-        def gen_data(n):
-            nonlocal _i, training_data
-            _i %= len(training_data.indices)
-            d = len(training_data.indices) - (_i + n)
-            if d < n:
-                list_of_indices = training_data.indices[_i:] + training_data.indices[0:n-d]
-                random.shuffle(training_data.indices)
-            else:
-                list_of_indices = training_data.indices[_i:_i+n]
-            _i += n
-            _X = training_data.X.take(list_of_indices, axis=0)
-            _y = training_data.y.take(list_of_indices, axis=0)
-            return _X, _y
-        self.train(gen_data)
+        if self.gen_data is None:
+            _i = 0
+            training_data = DataSet(X, y)
+            def gen_data(n):
+                nonlocal _i, training_data
+                _i %= len(training_data.indices)
+                d = len(training_data.indices) - (_i + n)
+                if d < n:
+                    list_of_indices = training_data.indices[_i:] + training_data.indices[0:n-d]
+                    random.shuffle(training_data.indices)
+                else:
+                    list_of_indices = training_data.indices[_i:_i+n]
+                _i += n
+                _X = training_data.X.take(list_of_indices, axis=0)
+                _y = training_data.y.take(list_of_indices, axis=0)
+                return _X, _y
+            self.train(gen_data)
+        else:
+            self.train(self.gen_data)
