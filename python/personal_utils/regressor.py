@@ -87,7 +87,7 @@ class Regressor(object):
             def gen_data(n):
                 nonlocal _i, training_data, num_training_instances
                 _i %= num_training_instances
-                d = num_training_instances - _i + 1
+                d = num_training_instances - _i
                 if d < n:
                     list_of_indices = training_data.indices[_i:] + training_data.indices[:n-d]
                     rng.shuffle(training_data.indices)
