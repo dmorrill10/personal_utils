@@ -66,10 +66,10 @@ class Regressor(object):
     def train(self, gen_data):
         if self.verbose:
             print("{:7}: {}".format("Epoch", "Avg. Training Loss"))
-        self.num_iterations_before_checkpoint = 100
         avg_loss = 0
         for i in range(1, self.epochs + 1):
-            loss = self.trainer(*gen_data(self.batch))
+            X, y = gen_data(self.batch)
+            loss = self.trainer(X, y)
             if self.verbose:
                 avg_loss += (np.mean(loss) / self.num_iterations_before_checkpoint)
                 if i % self.num_iterations_before_checkpoint == 0:
