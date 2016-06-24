@@ -53,3 +53,19 @@ class DataSet(object):
     def __init__(self, name, data):
         self.name = name
         self.data = pd.DataFrame(data).astype('float')
+
+
+# if __name__ == '__main__':
+#     import sys
+#     import matplotlib.pyplot as plt
+#
+#     data_sets = list(DataSet.read(sys.stdin))
+#     fig = plt.figure()
+#     i = 0
+#     for s in data_sets:
+#         plt.plot(s.data[0], s.data[1])
+#         print("{}: {}".format(i, s.name))
+#         i += 1
+#     plt.ylim([0.6926, 0.69277])
+#     plt.legend(list(range(len(data_sets))))
+#     plt.show()
