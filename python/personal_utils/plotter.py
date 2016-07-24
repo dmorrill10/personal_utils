@@ -21,7 +21,7 @@ def nonempty_lines(lines):
         if line != '': yield line
 
 
-class DataSet(object):
+class Specimen(object):
     @classmethod
     def read(self, lines, **csv_reader_kwargs):
         name = 'Data'
@@ -43,10 +43,10 @@ class DataSet(object):
                     data_lines = []
                 name = result.group(1)
         if len(data_lines) > 0:
-            yield self(name, list(csv.reader(data_lines, **csv_reader_kwargs)))
+            yield name, self(list(csv.reader(data_lines, **csv_reader_kwargs)))
 
-    def __init__(self, name, data):
-        self.name = name
+    def __init__(self, data, config={}):
+        self.config = pd.Series(config)
         self.data = pd.DataFrame(data).astype('float')
 
 
@@ -119,13 +119,15 @@ def plot_estimation_error(file_name,
                           mark_every=None,
                           line_width=2,
                           size=None):
+    experiment = {}
     with open(file_name, 'r') as f:
-        data_sets = list(DataSet.read(f))
+        for name, specimen in Specimen.read(f):
+            experiment[name] = specimen
     fig = plt.figure(figsize=size)
     i = 0
     colors = color_table()
     markers = marker_table()
-    for s in data_sets:
+    for name, s in experiment:
         plt.plot(s.data[0],
                  s.data[1],
                  marker=next(markers),
@@ -135,7 +137,7 @@ def plot_estimation_error(file_name,
                  markersize=marker_size,
                  linewidth=line_width)
         if legend is None:
-            print("{}: {}".format(i, s.name))
+            print("{}: {}".format(i, name))
         i += 1
     if ylim is not None:
         plt.ylim(ylim)
@@ -143,23 +145,7 @@ def plot_estimation_error(file_name,
     plt.xlabel(xlabel)
     plt.title(title)
     if legend is None:
-        plt.legend(list(range(len((data_sets)))), loc=legend_loc)
+        plt.legend(list(range(len(experiment))), loc=legend_loc)
     else:
-        plt.legend(legend(data_sets), loc=legend_loc)
+        plt.legend(legend(experiment), loc=legend_loc)
     return fig
-
-
-# if __name__ == '__main__':
-#     import sys
-#     import matplotlib.pyplot as plt
-#
-#     data_sets = list(DataSet.read(sys.stdin))
-#     fig = plt.figure()
-#     i = 0
-#     for s in data_sets:
-#         plt.plot(s.data[0], s.data[1])
-#         print("{}: {}".format(i, s.name))
-#         i += 1
-#     plt.ylim([0.6926, 0.69277])
-#     plt.legend(list(range(len(data_sets))))
-#     plt.show()
