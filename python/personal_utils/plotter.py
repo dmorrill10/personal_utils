@@ -114,13 +114,14 @@ def plot_estimation_error(file_name,
                           legend=None,
                           legend_loc='best',
                           ylim=None,
+                          xlim=None,
                           alpha=0.6,
                           marker_size=10,
                           mark_every=None,
                           line_width=2,
                           size=None):
     with open(file_name, 'r') as f:
-        data_sets = list(DataSet.read(f))
+        data_sets = sorted(list(DataSet.read(f)), key=lambda e: e.name)
     fig = plt.figure(figsize=size)
     i = 0
     colors = color_table()
@@ -139,6 +140,8 @@ def plot_estimation_error(file_name,
         i += 1
     if ylim is not None:
         plt.ylim(ylim)
+    if xlim is not None:
+        plt.xlim(xlim)
     plt.ylabel(ylabel)
     plt.xlabel(xlabel)
     plt.title(title)
