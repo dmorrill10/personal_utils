@@ -60,10 +60,10 @@ def compute_statistics
 end
 
 def print_table(statistics)
-  printf("# %25s%15s%15s%15s%15s%15s\n", '', "n", "mean", "s^2", "se", "95%_CI")
+  printf("# %25s%20s%20s%20s%20s%20s\n", '', "n", "mean", "s^2", "se", "95%_CI")
 
   statistics[:means].each_pair do |label, mean|
-    printf("%27s%15d%15f%15f%15f%15f\n", label, statistics[:ns][label], mean, statistics[:sample_variances][label], statistics[:standard_errors][label], statistics[:cis][label])
+    printf("%27s%20d%20f%20f%20f%20f\n", label, statistics[:ns][label], mean, statistics[:sample_variances][label], statistics[:standard_errors][label], statistics[:cis][label])
   end
 end
 
@@ -72,7 +72,7 @@ def print_ssv_with_errors(statistics, digits)
     printf("# %25s", label)
     puts
     printf '  '
-    printf("%15s%10s\n", format("%0.#{digits}f", mean), format("%0.#{digits}f", statistics[:cis][label]))
+    printf("%20s%15s\n", format("%0.#{digits}f", mean), format("%0.#{digits}f", statistics[:cis][label]))
   end
   puts
 end

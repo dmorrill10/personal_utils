@@ -121,7 +121,7 @@ def marker_table():
             and v != 'tickup'
             and v != 'tri_up'
             and v != 'tickright'
-            #       v != 'x' and
+            and v != 'x'
             and v != 'tickdown'
             and v != 'tri_left'
             and v != 'tri_right'
