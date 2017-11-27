@@ -1,0 +1,99 @@
+#!/usr/bin/env ruby
+require 'fileutils'
+require 'optparse'
+
+
+options = {}
+OptionParser.new do |opts|
+  opts.banner = "Usage: #{__FILE__} [options]"
+
+  opts.on_tail("-h", "--help", "Show this message") do
+    puts opts
+    exit
+  end
+
+  options[:name] = nil
+  opts.on("-n", "--name [NAME]", "The name of the iPython experiment to be created. Required.") do |s|
+    options[:name] = s unless s.nil?
+  end
+
+  options[:git] = true
+  opts.on("-g", "--git", "Create as a Git repo. Defaults to #{options[:git]}.") do |s|
+    options[:git] = s unless s.nil?
+  end
+
+  options[:remote] = nil
+  opts.on("-r", "--remote [NAME,URL]", "Add a remote Git repository.") do |s|
+    options[:remote] = s unless s.nil?
+  end
+end.parse!
+
+raise("Please provide an experiment name.") if options[:name].nil? || options[:name].empty?
+raise(%Q{"#{options[:name]}" already exists, please choose a different name.}) if File.exist?(options[:name])
+
+ipython_templates_dir = File.expand_path('../../../ipython/templates', __FILE__)
+
+FileUtils.cp_r ipython_templates_dir, options[:name]
+Dir.chdir(options[:name]) do
+  experiment_name_components = options[:name].split('/')
+  experiment_library_name = (
+    if experiment_name_components.empty?
+      experiment_name
+    else
+      experiment_name_components.last
+    end
+  )
+  unless File.exist?(experiment_library_name + '.py')
+    File.open(experiment_library_name + '.py', 'w') {}
+    File.open('ipynb_starter.py', 'a') do |f|
+      f.puts "\nimport #{experiment_library_name}"
+    end
+  end
+
+  unless File.exist?('.gitignore')
+    system('wget https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore -O .gitignore')
+  end
+
+  unless File.exist?('README.md')
+    File.open('README.md', 'w') do |f|
+      f.puts("# #{experiment_library_name}")
+      f.puts ''
+      f.puts('To start, run `jupyter notebook` in a terminal, then run `%load ipynb_starter` in the notebook.')
+    end
+  end
+
+  unless File.exists?('setup.py')
+    File.open('setup.py', 'w') do |f|
+      f.write(
+<<-END
+from setuptools import setup, find_packages
+import warnings
+
+setup(
+    name='#{experiment_library_name}',
+    version='0.0.1',
+    packages=find_packages(),
+    install_requires=[],
+    tests_requires=[],
+    setup_requires=[]
+)
+END
+      )
+    end
+  end
+
+  if options[:git] && !File.directory?('.git')
+    puts "Initializing as git repo"
+    system('git init .')
+    system('git add . .gitignore')
+    system("git commit -am 'Copy files from templates.'")
+  end
+
+  if options[:remote] && !options[:remote].empty?
+    remote_name, remote_url = options[:remote].split(',')
+    if remote_name && !remote_name.empty? && remote_url && !remote_url.empty?
+      system("git remote add #{remote_name} #{remote_url}")
+    end
+  end
+end
+puts "Done"
