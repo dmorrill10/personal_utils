@@ -86,7 +86,7 @@ def parse_table
     row_data = line.split(/\s+/)
     num_rows += 1
     row_avg = row_data.inject(0.0) do |avg, v|
-      avg + v.to_f / (column_labels.length - 1.0)
+      avg + v.to_f / (col_avgs.length - 1.0)
     end
     (row_data[1..-1] + [row_avg]).each_with_index do |value, i|
       col_avgs[i] += (value.to_f - col_avgs[i]) / num_rows.to_f
